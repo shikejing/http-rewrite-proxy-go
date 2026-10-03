@@ -1,0 +1,47 @@
+{
+  "upstreams": [
+    {
+      "name": "default",
+      "urls": ["http://127.0.0.1:9001", "http://127.0.0.1:9002"],
+      "health": {
+        "path": "/health",
+        "interval_ms": 1000,
+        "timeout_ms": 500,
+        "healthy_threshold": 1,
+        "unhealthy_threshold": 2
+      },
+      "max_conns": 100,
+      "queue_timeout_ms": 200
+    }
+  ],
+  "rules": [
+    {
+      "id": "api-rewrite",
+      "priority": 10,
+      "match": {"path_prefix": "/gw/"},
+      "actions": {
+        "path_prefix_replace": {"match": "/gw/", "replacement": "/api/"},
+        "query_set": {"via": "proxy"},
+        "req_header_set": {"X-Proxy": "go"},
+        "resp_header_set": {"X-Proxy": "go"}
+      }
+    }
+  ],
+  "settings": {
+    "default_upstream": "default",
+    "attempt_timeout_ms": 5000,
+    "overall_timeout_ms": 30000,
+    "max_retries": 2,
+    "retry_backoff_ms": 10,
+    "flush_interval_ms": 0,
+    "max_idle_conns": 100,
+    "max_idle_conns_per_host": 32,
+    "idle_conn_timeout_ms": 90000
+  },
+  "acl": {
+    "protected_headers": ["Authorization", "Proxy-Authorization"],
+    "strip_req_headers": ["X-Evil"],
+    "inject_req_headers": {"X-Proxy-Identity": "gateway"},
+    "strip_resp_headers": ["Server", "X-Powered-By"]
+  }
+}
