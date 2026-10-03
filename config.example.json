@@ -1,0 +1,28 @@
+{
+  "rules": [
+    {
+      "name": "api-v1",
+      "priority": 10,
+      "path_prefix": "/api",
+      "replace_path": "/v1",
+      "upstream": "u1",
+      "add_query": { "token": "t1" },
+      "remove_query": ["debug"],
+      "request_headers": { "set": { "X-Env": "prod" }, "remove": ["X-Debug"] },
+      "response_headers": { "set": { "X-Cache": "hit" }, "remove": ["Server"] }
+    }
+  ],
+  "upstreams": [
+    { "name": "u1", "endpoints": ["http://127.0.0.1:9001", "http://127.0.0.1:9002"] }
+  ],
+  "retry": { "max_attempts": 2, "backoff": 1000000 },
+  "timeouts": { "per_attempt": 2000000000, "overall": 5000000000 },
+  "auth": {
+    "strip_headers": ["Cookie"],
+    "inject_headers": { "X-Internal-Token": "secret" },
+    "signed_headers": ["Authorization"],
+    "allow_rewrite_signed": false
+  },
+  "limits": { "max_concurrent": 100, "queue_limit": 16 },
+  "health_check": { "interval": 2000000000, "timeout": 1000000000, "fail_threshold": 2, "recover_threshold": 1 }
+}
